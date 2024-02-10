@@ -1,0 +1,66 @@
+---
+import Layout from "../layouts/Layout.astro";
+const amount = Astro.url.searchParams.get("amount")! || "";
+const days = Astro.url.searchParams.get("days")! || "";
+
+// Define your API endpoint and API keys
+const apiEndpoint =
+  "https://thklpacfwtrtuynqlnah.supabase.co/rest/v1/tna_view?display=eq.TRUE&select=*";
+const apiKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRoa2xwYWNmd3RydHV5bnFsbmFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDA5NDU4ODMsImV4cCI6MjAxNjUyMTg4M30._it1MlAW77XSEtPomXXgibz99xJtZc5Jcc3V2OVt33s"; // Ensure to securely store and use your API keys
+
+// Configure your fetch request with headers
+const response = await fetch(apiEndpoint, {
+  method: "GET",
+  headers: {
+    Authorization: `Bearer ${apiKey}`,
+    apikey: apiKey,
+  },
+});
+
+const data = await response.json();
+
+const sortedAndFilteredData = data
+  .sort((a, b) => {
+    if (a.tea < b.tea) {
+      return 1; // para un orden descendente, devuelve 1 si el primer elemento es menor que el segundo
+    } else if (a.tea > b.tea) {
+      return -1; // devuelve -1 si el primer elemento es mayor que el segundo
+    } else {
+      return 0; // devuelve 0 si son iguales
+    }
+  })
+  .filter(item => item.type === "tradicional" || item.type === "cuenta_remunerada"); // Filtrar por tipo
+
+---
+
+<Layout title="Simulá tus rendimientos">
+    <div
+        id="containter"
+        class="container mx-auto mx-4 px-4 my-6 max-w-sm sm:max-w-sm md:max-w-md lg:max-w-lg"
+    >
+        <h1 class="text-3xl text-gray-900 font-bold my-6 dark:text-gray-100">Simulá tus rendimientos</h1>
+        <p class="font-bold">Vas a invertir {amount} por {days} dias</p>
+        <div class="flex flex-col gap-2 my-4">
+        {
+            sortedAndFilteredData
+              .filter((item) => item.type === "cuenta_remunerada")
+              .map((item) => (
+                <>
+                  {
+                    (() => {
+                      let tasaDiaria = Math.pow(1 + item.tea, 1/365) - 1;
+                      let montoFinal = amount * Math.pow(1 + tasaDiaria, days);
+                      // Formatear el monto como pesos argentinos
+                      let montoFormateado = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(montoFinal);
+                      return <p>Con {item.name} terminas con {montoFormateado}</p>; 
+                    })()
+                  }
+                </>
+              ))
+          }
+        </div>
+
+
+    </div>
+</Layout>
