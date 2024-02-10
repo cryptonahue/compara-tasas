@@ -49,7 +49,7 @@ const sortedAndFilteredData = data
                 <>
                   {
                     (() => {
-                      let tasaDiaria = Math.pow(1 + item.tea, 1/365) - 1;
+                      let tasaDiaria = item.tasa_diaria / 100;
                       let montoFinal = amount * Math.pow(1 + tasaDiaria, days);
                       // Formatear el monto como pesos argentinos
                       let montoFormateado = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(montoFinal);
